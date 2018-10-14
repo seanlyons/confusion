@@ -1,0 +1,92 @@
+<div class='header'>
+    {% if data['tag1']|string() == data['tag2']|string() %}
+        <span>Ideas about {{ data['tag1'] }}:</span>
+    {% else %}
+        <span>Ideas about {{ data['tag1'] }} &amp; {{ data['tag2'] }}:</span>
+    {% endif %}
+</div>
+    {% for combo in combos: %}
+	{% endfor %}
+</div>
+
+
+
+
+<!--div class='keyBindList'>
+	<div>foo</div>
+	<div>bar</div>
+	<div>baz</div>
+</div-->
+
+<style>
+</style>
+
+<!--script>
+	//'use strict';
+
+	pageX = pageY = 0;
+	globalE = null;
+
+	//whenever an alpha key is pressed, register an ajax event with the server.
+	document.addEventListener('keypress', (event) => {
+		const keyName = event.key;
+
+		if (keyName >= 'z'
+		|| keyName <= 'a') {
+			return false;
+		}
+
+
+		dataArr = [];
+		dataArr['ts'] = globalE.path[2].getElementsByClassName('metaTweet')[0].getElementsByClassName('timestamp')[0].innerHTML;
+		dataArr['id'] = globalE.path[2].id;
+		dataArr['user'] = 1;
+		dataArr['tag'] = keyName;
+		console.log('in keypress');
+		console.log(dataArr);
+		makeRequest(dataArr);
+	});
+
+	function encodeQueryData(dataArr) {
+		let ret = [];
+		for (let d in dataArr) {
+			   ret.push(encodeURIComponent(d) + '=' + encodeURIComponent(dataArr[d]));
+		}
+		return ret.join('&');
+	}
+
+	function makeRequest(dataArr) {
+		httpRequest = new XMLHttpRequest();
+
+		if (!httpRequest) {
+			console.log('Giving up :( Cannot create an XMLHTTP instance');
+			return false;
+		}
+		queryString = encodeQueryData(dataArr)
+		httpRequest.onreadystatechange = alertContents;
+		httpRequest.open('POST', 'tag', true);
+		httpRequest.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        console.log('in makerequest');
+		console.log(queryString);
+		// httpRequest.send(dataArr);
+		httpRequest.send(queryString);
+	}
+
+	function alertContents() {
+		if (httpRequest.readyState === XMLHttpRequest.DONE) {
+			if (httpRequest.status === 200) {
+				console.log(httpRequest.responseText);
+			} else {
+				alert('There was a problem with the request.');
+			}
+		}
+	}
+
+	//Whenever a tweet is moused over, populate it as the relevant tweet to apply to whenever a keypress is made.
+	tweets = document.getElementsByClassName('userFavoritesList');
+	for (var i = 0, len = tweets.length; i < len; i++) {
+		tweets[i].addEventListener('mouseover', (event) => {
+			globalE = event || window.event;
+		});
+	}
+</script-->

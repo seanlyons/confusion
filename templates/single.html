@@ -1,0 +1,41 @@
+{% for favorite in favorites: %}
+    <div class='userFavoritesList' style="max-width:515px">
+        <div class='metaTweet'>
+			<a href='//twitter.com/{{ favorite.author.screen_name }}/status/{{ favorite.id }}'>
+				<div class='timestamp'>{{ favorite.created_at }}</div>
+			</a>
+            <div class='author' title='{{ favorite.author.description }}'>
+                <a href='//twitter.com/{{ favorite.author.screen_name }}'>
+                    <img class='icon' src='{{ favorite.author.profile_image_url }}' />
+                    <div class='user_name'>@{{ favorite.author.screen_name }}</div>
+                    <div class='real_name'>{{ favorite.author.name }}</div>
+                </a>
+            </div>
+            <div class='tweet'>
+                {{ favorite.full_text|safe }}
+            </div>
+            {% for entity in favorite.entities: %}
+                <div class='entity'>
+                    <a href='{{ entity.media_url }}'>
+                        <img style="max-height: 350px; max-width: 500px;" class='media_url' src='{{ entity.media_url }}'/>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endfor %}
+
+<style>
+    .userFavoritesList {
+        border: red dashed 1px;
+    }
+
+	.user_name,
+	.real_name {
+		width: 50%;
+	}
+
+	.tweet {
+		font-family: 'Consolas, Menlo, Monaco, "Lucida Console", "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace, sans-serif';
+	}
+</style>
