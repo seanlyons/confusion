@@ -1,5 +1,6 @@
 import datetime
 from flask import Flask
+import inspect
 import pdb
 from flask import render_template
 from flask import request
@@ -13,6 +14,16 @@ import time
 
 app = Flask(__name__)
 namespace = 'foon'
+
+def context(*msg):
+    for m in msg:
+        print("{0}(): {1}".format(whoami(), m))
+
+def whoami(): 
+    frame = inspect.currentframe()
+    #pdb.set_trace()
+    context = inspect.getouterframes(frame)[2]
+    return "{0}({1}):".format(context.function, context.lineno)
 
 def colorize(string, n):
     attr = []
@@ -30,7 +41,7 @@ def sqliteConnect():
     try:
         return sqlite3.connect(db_file)
     except Exception as e:
-        print('sqliteConnect ERROR: ' + str(e) + ' for db_file: ' + colorize(db_file, 1))
+        context('sqliteConnect ERROR: ' + str(e) + ' for db_file: ' + colorize(db_file, 1))
         sys.exit()
 
 def sqliteStatement(conn, statement, variables):
@@ -40,17 +51,30 @@ def sqliteStatement(conn, statement, variables):
 
         return c.fetchall()
     except Exception as e:
-        print('sqliteStatement ERROR: ' + str(e) + " for statement: \n\n" + colorize(statement, 1))
+        context('sqliteStatement ERROR: ' + str(e) + " for statement: \n\n" + colorize(statement, 1))
         sys.exit()
 
 def showCombo(tag1, tag2):
     conn = sqliteConnect()
-    print(tag1, tag2)
+    context(tag1, tag2)
+    if tag1 is None:
+        tag1id,tag1 = getRandomTag(conn)
+    else:
+        context(tag1)
+        submitTag(tag1)
+    if tag2 is None:
+        tag2id,tag2 = getRandomTag(conn)
+    else:
+        context(tag2)
+        submitTag(tag2)
+
     tag1id,tag1name = verifyTag(tag1, conn)
+    context([tag1, tag1id, tag1name])
     tag2id,tag2name = verifyTag(tag2, conn)
+    context([tag2, tag2id, tag2name])
 
     if tag1id is None or tag2id is None:
-        print('DB not initialized? tag1 or tag2 is null.', tag1, tag2, tag1id, tag2id)
+        context('DB not initialized? tag1 or tag2 is null.', tag1, tag2, tag1id, tag2id)
         sys.exit()
 
     #Order the two tags alphabetically
@@ -76,40 +100,52 @@ def submitTag(tag):
 
     tag = tag.lower()
     #if this tag already exists, reject it
-    if verifyTag(tag, conn):
+    tag_id,tag_name = verifyTag(tag, conn)
+    context(['checking on:', tag,tag_id,tag_name])
+    if tag_id is not None and tag_name is not None:
+        context('returning False')
         return False
 
     #This tag doesn't exist, so let's add it
-    namespace = 'foon'
     added_by = 0
-    addTag(conn, tag, namespace, added_by)
+    tag = addTag(conn, tag, namespace, added_by)
+    context(['successfully added', tag])
     return True
 
-def verifyTag(tag, conn):
+def getMaxId(conn):
     try:
         statement = "select MAX(id) from tags"
         maxId = sqliteStatement(conn, statement, ())
         maxId = maxId[0][0]
     except Exception as e:
-        print('Tags table appears to be empty.')
+        context('Tags table appears to be empty.')
         sys.exit()
 
     if maxId < 0:
-        print("There are no tags present in the database. You might want to seed the database? /seed")
+        context("There are no tags present in the database. You might want to seed the database? /seed")
         sys.exit()
+    return maxId
 
+def getRandomTag(conn):
+    maxId = getMaxId(conn)
     #Tags are None when they want a random value.
-    if tag is None:
-        if maxId > 1:
-            randId = random.randrange(1,maxId)
-        else:
-            randId = 1
-        statement = "select id,name from tags where id='{0}' and disabled=0".format(randId)
+    if maxId > 1:
+        randId = random.randrange(1,maxId)
     else:
-        statement = "select id,name from tags where name='{0}' and disabled=0".format(tag)
+        randId = 1
+    statement = "select id,name from tags where id='{0}' and disabled=0".format(randId)
     tag = sqliteStatement(conn, statement, ())
     if not tag:
         return None,None
+    return tag[0][0], tag[0][1]
+
+def verifyTag(tag_name, conn):
+    context(tag_name)
+    statement = "select id,name from tags where name='{0}' and disabled=0".format(tag_name)
+    tag = sqliteStatement(conn, statement, ())
+    if not tag:
+        return None,None
+    context(tag_name, '&', tag)
     return tag[0][0], tag[0][1]
 
 def seedDatabase():
@@ -138,6 +174,8 @@ CREATE TABLE IF NOT EXISTS combos (
 def combine(tag1, tag2, description):
     conn = sqliteConnect()
     
+    if tag1 is None:
+        tag1 = getRandomTag(conn)
     tag1id,tag1name = verifyTag(tag1, conn)
     tag2id,tag2name = verifyTag(tag2, conn)
 
@@ -152,6 +190,8 @@ def addTag(conn, name, namespace, added_by):
     #name is a unique key, nothing else. `id` is primary key, autoincremented.
     statement = "INSERT OR IGNORE INTO tags (name, namespace, added_by, added_ts, disabled) VALUES ('{0}', '{1}', {2}, '{3}', {4})".format(name, namespace, added_by, datetime.datetime.now().strftime("%s"), 0)
     tag = sqliteStatement(conn, statement, ())
+    context(['tag', tag, 'for statement', statement])
+    return tag
 
 ############################# FLASK ROUTING #############################
 
