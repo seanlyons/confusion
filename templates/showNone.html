@@ -1,7 +1,13 @@
-
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="{{ url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+<script src="{{ url_for('static', filename='js/common.js') }}" /></script>
 
 <div class='header'>
     <span>Ideas about {{data['tag1']}}:</span>
+</div>
+<div class="hidden">
+	<span id="tag1">{{data['tag1']}}</span>
+	<span id="tag2">{{data['tag1']}}</span>
 </div>
 <div>
     Nobody has thought about {{data['this_these']}} before. What about you?
@@ -14,6 +20,7 @@
 </div-->
 
 <style>
+	.hidden { display:none; }
 </style>
 
 <!--script>

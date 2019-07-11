@@ -45,11 +45,12 @@ def sqliteStatement(conn, statement, variables):
 
 def showCombo(tag1, tag2):
     conn = sqliteConnect()
+    print(tag1, tag2)
     tag1id,tag1name = verifyTag(tag1, conn)
     tag2id,tag2name = verifyTag(tag2, conn)
 
     if tag1id is None or tag2id is None:
-        print('DB not initialized? tag1 or tag2 is null.')
+        print('DB not initialized? tag1 or tag2 is null.', tag1, tag2, tag1id, tag2id)
         sys.exit()
 
     #Order the two tags alphabetically
@@ -60,7 +61,7 @@ def showCombo(tag1, tag2):
        first = tag2id
        second = tag1id
 
-    statement = "select * from combos where tag1id={0} and tag2id={0}".format(first, second)
+    statement = "select * from combos where tag1id='{0}' and tag2id='{0}'".format(first, second)
     combos = sqliteStatement(conn, statement, ())
     
     comboList = []
@@ -103,12 +104,12 @@ def verifyTag(tag, conn):
             randId = random.randrange(1,maxId)
         else:
             randId = 1
-        statement = "select id,name from tags where id={0} and disabled=0".format(randId)
+        statement = "select id,name from tags where id='{0}' and disabled=0".format(randId)
     else:
-        statement = "select id,name from tags where name={0} and disabled=0".format(tag)
+        statement = "select id,name from tags where name='{0}' and disabled=0".format(tag)
     tag = sqliteStatement(conn, statement, ())
     if not tag:
-        return None
+        return None,None
     return tag[0][0], tag[0][1]
 
 def seedDatabase():
@@ -163,6 +164,10 @@ def renderCombosOrNone(data):
         return render_template('showCombo.html', data=data)
     return render_template('showNone.html', data=data)
 
+@app.route('/favicon.ico')
+def favicon():
+    return ''
+
 @app.route('/')
 def no_tags():
     data = showCombo(None, None)
@@ -174,6 +179,10 @@ def one_tag(tag1):
     data = showCombo(tag1, None)
     data['this_these'] = 'this'
     return renderCombosOrNone(data)
+
+@app.route('/<string:tag1>/<string:tag2>/<string:etc>')
+def two_tags_etc(tag1, tag2, etc):
+    return two_tags(tag1, tag2)
 
 @app.route('/<string:tag1>/<string:tag2>')
 def two_tags(tag1, tag2):
@@ -209,5 +218,3 @@ def post_submit_combine():
 
     #that's presumably persisted correctly and shouldn't have any race conditions, right?! now display it back to them.
     return two_tags(tag1, tag2)
-
-

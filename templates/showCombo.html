@@ -1,3 +1,8 @@
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="{{ url_for('static', filename='jquery.js') }}">\x3C/script>')</script>
+<script src="{{ url_for('static', filename='js/common.js') }}" /></script>
+
+
 <div class='header'>
     {% if data['tag1']|string() == data['tag2']|string() %}
         <span>Ideas about {{ data['tag1'] }}:</span>
@@ -5,6 +10,11 @@
         <span>Ideas about {{ data['tag1'] }} &amp; {{ data['tag2'] }}:</span>
     {% endif %}
 </div>
+<div class="hidden">
+	<span id="tag1">{{data['tag1']}}</span>
+	<span id="tag2">{{data['tag1']}}</span>
+</div>
+<div>
     {% for combo in combos: %}
 	{% endfor %}
 </div>
