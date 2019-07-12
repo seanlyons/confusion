@@ -16,14 +16,16 @@ app = Flask(__name__)
 namespace = 'foon'
 
 def context(*msg):
+    if msg is None:
+        print("{0}".format(whoami()))
     for m in msg:
-        print("{0}(): {1}".format(whoami(), m))
+        print("{0}: {1}".format(whoami(), m))
 
 def whoami(): 
     frame = inspect.currentframe()
     #pdb.set_trace()
     context = inspect.getouterframes(frame)[2]
-    return "{0}({1}):".format(context.function, context.lineno)
+    return "{0}({1})".format(context.function, context.lineno)
 
 def colorize(string, n):
     attr = []
@@ -93,6 +95,7 @@ def showCombo(tag1, tag2):
         comboList.append(combo[0])
 
     data = {'tag1': tag1name, 'tag2': tag2name, 'combos': comboList}
+    context(data)
     return data
 
 def submitTag(tag):
@@ -200,43 +203,41 @@ def verify_post_auth():
     return True
 
 def renderCombosOrNone(data):
-    if data['combos']:
-        return render_template('showCombo.html', data=data)
-    return render_template('showNone.html', data=data)
+    context('data:', data)
+    return render_template('show.html', data=data)
 
 @app.route('/favicon.ico')
 def favicon():
     return ''
 
-@app.route('/')
-def no_tags():
-    data = showCombo(None, None)
-    data['this_these'] = 'those'
-    return renderCombosOrNone(data)
-
-@app.route('/<string:tag1>')
-def one_tag(tag1):
-    data = showCombo(tag1, None)
-    data['this_these'] = 'this'
-    return renderCombosOrNone(data)
-
 @app.route('/<string:tag1>/<string:tag2>/<string:etc>')
 def two_tags_etc(tag1, tag2, etc):
+    context('@route')
     return two_tags(tag1, tag2)
 
 @app.route('/<string:tag1>/<string:tag2>')
 def two_tags(tag1, tag2):
     data = showCombo(tag1, tag2)
     data['this_these'] = 'these'
+    context('@route', data)
+    return renderCombosOrNone(data)
+
+@app.route('/<string:tag1>')
+def one_tag(tag1):
+    context('@route')
+    data = showCombo(tag1, None)
+    data['this_these'] = 'this'
     return renderCombosOrNone(data)
 
 @app.route('/seed')
 def seed_db():
+    context('@route')
     seedDatabase()
     return 'seeded!'
 
 @app.route('/addtag/<string:tag>', methods=['POST'])
 def post_submit_tag():
+    context('@route')
     if not verify_post_auth():
         return 'Invalid request!'
     if not request.form['tag']:
@@ -249,6 +250,7 @@ def post_submit_tag():
 
 @app.route('/combine/<string:tag1>/<string:tag2>', methods=['POST'])
 def post_submit_combine():
+    context()
     if not verify_post_auth():
         return 'Invalid request!' 
     if not request.form['combination']:
@@ -258,3 +260,10 @@ def post_submit_combine():
 
     #that's presumably persisted correctly and shouldn't have any race conditions, right?! now display it back to them.
     return two_tags(tag1, tag2)
+
+@app.route('/')
+def no_tags():
+    context()
+    data = showCombo(None, None)
+    data['this_these'] = 'those'
+    return renderCombosOrNone(data)
